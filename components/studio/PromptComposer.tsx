@@ -6,13 +6,13 @@ import { useState, type FormEvent, type KeyboardEvent, type RefObject } from "re
 import { AdvancedSettings } from "@/components/studio/AdvancedSettings";
 import { FormatPicker } from "@/components/studio/FormatPicker";
 import { StylePicker } from "@/components/studio/StylePicker";
+import { TemplateFieldsForm } from "@/components/studio/TemplateFieldsForm";
+import { TemplatePicker } from "@/components/studio/TemplatePicker";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import type { ComposerSettings } from "@/lib/settings";
-import type { GeneratedImage, ModelInfo } from "@/types/generation";
-
-export const PLACEHOLDER_PROMPT =
-  "Un château futuriste au sommet d'une montagne, au coucher du soleil, photographie cinématographique ultra détaillée.";
+import { getTemplate, validateTemplateFields } from "@/lib/templates";
+import type { GeneratedImage, ModelInfo, TemplateFields, TemplateId } from "@/types/generation";
 
 interface PromptComposerProps {
   textareaRef: RefObject<HTMLTextAreaElement | null>;
@@ -20,6 +20,9 @@ interface PromptComposerProps {
   onPromptChange: (prompt: string) => void;
   settings: ComposerSettings;
   onSettingsChange: (patch: Partial<ComposerSettings>) => void;
+  templateFields: TemplateFields;
+  onTemplateChange: (id: TemplateId) => void;
+  onTemplateFieldChange: (key: string, value: string) => void;
   models: ModelInfo[];
   model: ModelInfo | null;
   maxImages: number;
@@ -38,6 +41,9 @@ export function PromptComposer({
   onPromptChange,
   settings,
   onSettingsChange,
+  templateFields,
+  onTemplateChange,
+  onTemplateFieldChange,
   models,
   model,
   maxImages,
@@ -50,10 +56,12 @@ export function PromptComposer({
   onCancel,
 }: PromptComposerProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const template = getTemplate(settings.template);
+  const fieldsError = validateTemplateFields(template.id, templateFields);
   const trimmed = prompt.trim();
   const tooLong = prompt.length > maxPromptLength;
   const tooShort = trimmed.length > 0 && trimmed.length < 3;
-  const canSubmit = configured && !isGenerating && trimmed.length >= 3 && !tooLong;
+  const canSubmit = configured && !isGenerating && trimmed.length >= 3 && !tooLong && !fieldsError;
   const nearLimit = prompt.length > maxPromptLength * 0.8;
 
   const disabledReason = !configured
@@ -64,7 +72,7 @@ export function PromptComposer({
         ? "Ajoutez quelques mots à votre description."
         : tooLong
           ? `Votre description dépasse ${maxPromptLength} caractères.`
-          : null;
+          : fieldsError;
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -79,7 +87,8 @@ export function PromptComposer({
   }
 
   return (
-    <form onSubmit={handleSubmit} aria-label="Créer une image" className="w-full">
+    <form onSubmit={handleSubmit} aria-label="Créer une image" className="flex w-full flex-col gap-4">
+      <TemplatePicker value={settings.template} onChange={onTemplateChange} />
       <div
         className={cn(
           "overflow-hidden rounded-3xl border bg-elevated shadow-card transition-[border-color,box-shadow] duration-200",
@@ -116,7 +125,7 @@ export function PromptComposer({
           value={prompt}
           onChange={(e) => onPromptChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={PLACEHOLDER_PROMPT}
+          placeholder={template.subjectPlaceholder}
           rows={3}
           maxLength={maxPromptLength + 500}
           aria-describedby="prompt-help"
@@ -124,7 +133,9 @@ export function PromptComposer({
           className="field-sizing-content block max-h-72 min-h-28 w-full resize-none bg-transparent px-4 pt-4 pb-2 text-[16px] leading-relaxed text-fg placeholder:text-subtle focus:outline-none sm:px-5 sm:pt-5 sm:text-[17px]"
         />
 
-        <div className="flex flex-wrap items-center justify-between gap-2 px-3 pb-3 sm:px-4">
+        <TemplateFieldsForm template={template} values={templateFields} onChange={onTemplateFieldChange} />
+
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-3 sm:px-4">
           <div className="flex items-center gap-2">
             <Button
               variant={showAdvanced ? "secondary" : "ghost"}
@@ -184,9 +195,9 @@ export function PromptComposer({
         )}
       </div>
 
-      <div className="mt-4 grid gap-4 px-1">
+      <div className="grid gap-4 px-1">
         <StylePicker value={settings.style} onChange={(style) => onSettingsChange({ style })} />
-        <FormatPicker model={model} value={settings.aspect} onChange={(aspect) => onSettingsChange({ aspect })} />
+        <FormatPicker model={model} value={settings.aspect} hd={settings.resolution === "hd"} onChange={(aspect) => onSettingsChange({ aspect })} />
       </div>
     </form>
   );

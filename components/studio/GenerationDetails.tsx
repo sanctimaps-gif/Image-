@@ -1,4 +1,5 @@
 import { ASPECT_LABELS, BACKGROUND_LABELS, OUTPUT_FORMAT_LABELS, QUALITY_LABELS, getStyle } from "@/lib/catalog";
+import { getTemplate } from "@/lib/templates";
 import type { Generation, ModelInfo } from "@/types/generation";
 
 export function formatDate(iso: string): string {
@@ -11,8 +12,10 @@ export function GenerationDetails({ generation, models }: { generation: Generati
   const modelLabel = models.find((m) => m.id === s.model)?.label ?? s.model;
   const rows: [string, string][] = [
     ["Modèle", modelLabel],
+    ["Création", getTemplate(s.template ?? "none").label],
     ["Style", getStyle(s.style).label],
-    ["Format", `${ASPECT_LABELS[s.aspect].label} ${ASPECT_LABELS[s.aspect].ratio} · ${generation.size.replace("x", " × ")}`],
+    ["Format", `${ASPECT_LABELS[s.aspect].label} ${ASPECT_LABELS[s.aspect].ratio}`],
+    ["Dimensions", `${generation.size.replace("x", " × ")} px${s.resolution === "hd" ? " (HD)" : ""}`],
     ["Qualité", QUALITY_LABELS[s.quality]],
     ["Arrière-plan", BACKGROUND_LABELS[s.background]],
     ["Fichier", `${OUTPUT_FORMAT_LABELS[s.outputFormat]}${s.outputCompression !== null ? ` · ${s.outputCompression} %` : ""}`],

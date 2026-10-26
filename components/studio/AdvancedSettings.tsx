@@ -3,9 +3,9 @@
 import { ChevronDown } from "lucide-react";
 import { useId } from "react";
 import { RadioChips } from "@/components/ui/RadioChips";
-import { BACKGROUND_LABELS, OUTPUT_FORMAT_LABELS, QUALITY_LABELS } from "@/lib/catalog";
+import { BACKGROUND_LABELS, OUTPUT_FORMAT_LABELS, QUALITY_LABELS, RESOLUTION_LABELS } from "@/lib/catalog";
 import type { ComposerSettings } from "@/lib/settings";
-import { BACKGROUND_IDS, type ModelInfo } from "@/types/generation";
+import { BACKGROUND_IDS, RESOLUTION_IDS, type ModelInfo } from "@/types/generation";
 
 interface AdvancedSettingsProps {
   models: ModelInfo[];
@@ -19,6 +19,7 @@ export function AdvancedSettings({ models, model, settings, maxImages, onChange 
   const modelSelectId = useId();
   const compressionId = useId();
   const countLimit = Math.max(1, Math.min(model?.maxImages ?? 1, maxImages));
+  const format = model?.formats.find((f) => f.aspect === settings.aspect);
   const countOptions = Array.from({ length: countLimit }, (_, i) => String(i + 1));
 
   return (
@@ -58,6 +59,22 @@ export function AdvancedSettings({ models, model, settings, maxImages, onChange 
         value={settings.quality}
         onChange={(quality) => onChange({ quality })}
         options={(model?.qualities ?? ["auto"]).map((q) => ({ value: q, label: QUALITY_LABELS[q] }))}
+      />
+
+      <RadioChips
+        legend="Résolution"
+        value={settings.resolution}
+        onChange={(resolution) => onChange({ resolution })}
+        options={RESOLUTION_IDS.map((r) => {
+          const dims = r === "hd" ? format?.hd : format;
+          return {
+            value: r,
+            label: RESOLUTION_LABELS[r],
+            hint: dims ? `${dims.width} × ${dims.height} px` : undefined,
+            disabled: r === "hd" && !format?.hd,
+            disabledReason: model ? `Non disponible avec ${model.label} pour ce format` : undefined,
+          };
+        })}
       />
 
       <RadioChips

@@ -10,16 +10,18 @@ const SHAPES: Record<AspectId, string> = {
   portrait: "h-3.5 w-[9px]",
   landscape: "h-[9px] w-3.5",
   widescreen: "h-2 w-3.5",
+  story: "h-3.5 w-2",
 };
 
 interface FormatPickerProps {
   model: ModelInfo | null;
   value: AspectId;
+  hd?: boolean;
   onChange: (aspect: AspectId) => void;
 }
 
 /** Formats disponibles d'après les capacités réelles du modèle ; les autres sont affichés désactivés. */
-export function FormatPicker({ model, value, onChange }: FormatPickerProps) {
+export function FormatPicker({ model, value, hd = false, onChange }: FormatPickerProps) {
   const options: ChipOption<AspectId>[] = ASPECT_IDS.map((aspect) => {
     const format = model?.formats.find((f) => f.aspect === aspect);
     const { label, ratio } = ASPECT_LABELS[aspect];
@@ -31,7 +33,7 @@ export function FormatPicker({ model, value, onChange }: FormatPickerProps) {
           <span className="font-normal opacity-70">{ratio}</span>
         </>
       ),
-      hint: format ? `${format.width} × ${format.height} px` : undefined,
+      hint: format ? (hd && format.hd ? `${format.hd.width} × ${format.hd.height} px` : `${format.width} × ${format.height} px`) : undefined,
       disabled: !format,
       disabledReason: model ? `Non pris en charge par ${model.label}` : "Aucun modèle disponible",
       icon: <span aria-hidden className={cn("rounded-[2px] border-[1.5px] border-current", SHAPES[aspect])} />,

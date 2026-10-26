@@ -14,9 +14,16 @@ import { useClipboard } from "@/hooks/useClipboard";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useHistory } from "@/hooks/useHistory";
 import type { ApiClientError } from "@/lib/api-client";
-import { coerceSettings, DEFAULT_SETTINGS, settingsFromGeneration, type ComposerSettings } from "@/lib/settings";
+import {
+  applyTemplateDefaults,
+  coerceSettings,
+  DEFAULT_SETTINGS,
+  settingsFromGeneration,
+  type ComposerSettings,
+} from "@/lib/settings";
+import { cleanTemplateFields, getTemplate } from "@/lib/templates";
 import type { GenerateRequestInput } from "@/lib/validation";
-import type { AppConfig, GeneratedImage, Generation } from "@/types/generation";
+import type { AppConfig, GeneratedImage, Generation, TemplateFields, TemplateId } from "@/types/generation";
 
 const SETTINGS_KEY = "visionai-settings";
 
@@ -51,6 +58,7 @@ export function Studio({ config }: { config: AppConfig }) {
 
   const [prompt, setPrompt] = useState("");
   const [settings, setSettings] = useState<ComposerSettings>({ ...DEFAULT_SETTINGS, model: defaultModel });
+  const [templateFields, setTemplateFields] = useState<TemplateFields>({});
   const [variantSource, setVariantSource] = useState<GeneratedImage | null>(null);
   const [lightbox, setLightbox] = useState<{ generation: Generation; index: number } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -103,13 +111,21 @@ export function Studio({ config }: { config: AppConfig }) {
     [models, maxImages],
   );
 
-  function toRequest(text: string, s: ComposerSettings, sourceImageId: string | null): GenerateRequestInput {
+  function toRequest(
+    text: string,
+    s: ComposerSettings,
+    fields: TemplateFields,
+    sourceImageId: string | null,
+  ): GenerateRequestInput {
     return {
       prompt: text,
       providerId: provider?.id,
       model: s.model,
       style: s.style,
+      template: s.template,
+      templateFields: cleanTemplateFields(s.template, fields),
       aspect: s.aspect,
+      resolution: s.resolution,
       quality: s.quality,
       background: s.background,
       outputFormat: s.outputFormat,
@@ -126,11 +142,25 @@ export function Studio({ config }: { config: AppConfig }) {
 
   function handleSubmit() {
     if (generator.isGenerating) return;
-    void generator.generate(toRequest(prompt, settings, variantSource?.id ?? null));
+    void generator.generate(toRequest(prompt, settings, templateFields, variantSource?.id ?? null));
+  }
+
+  function changeTemplate(id: TemplateId) {
+    setSettings((current) => {
+      const next = applyTemplateDefaults(current, getTemplate(id), models, maxImages);
+      try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+      } catch {
+        // Stockage indisponible : sans conséquence.
+      }
+      return next;
+    });
+    setTemplateFields({});
   }
 
   function loadIntoComposer(generation: Generation) {
     setPrompt(generation.prompt);
+    setTemplateFields(generation.templateFields ?? {});
     updateSettings(settingsFromGeneration(generation.settings));
     setVariantSource(null);
     focusComposer();
@@ -138,6 +168,7 @@ export function Studio({ config }: { config: AppConfig }) {
 
   function startVariant(generation: Generation, image: GeneratedImage) {
     setPrompt(generation.prompt);
+    setTemplateFields(generation.templateFields ?? {});
     updateSettings(settingsFromGeneration(generation.settings));
     setVariantSource(image);
     focusComposer();
@@ -147,13 +178,15 @@ export function Studio({ config }: { config: AppConfig }) {
     const target = models.find((m) => m.id === generation.settings.model) ?? model;
     if (!target) return;
     const s = coerceSettings(settingsFromGeneration(generation.settings), target, maxImages);
-    void generator.generate(toRequest(generation.prompt, s, generation.sourceImageId));
+    void generator.generate(toRequest(generation.prompt, s, generation.templateFields ?? {}, generation.sourceImageId));
   }
 
   function pickInspiration(item: Inspiration) {
+    changeTemplate(item.template);
     setPrompt(item.prompt);
+    setTemplateFields(item.fields);
     setVariantSource(null);
-    updateSettings({ style: item.style, aspect: item.aspect });
+    updateSettings(item.template === "none" ? { style: item.style, aspect: item.aspect } : { aspect: item.aspect });
     focusComposer();
   }
 
@@ -196,6 +229,9 @@ export function Studio({ config }: { config: AppConfig }) {
           onPromptChange={setPrompt}
           settings={settings}
           onSettingsChange={updateSettings}
+          templateFields={templateFields}
+          onTemplateChange={changeTemplate}
+          onTemplateFieldChange={(key, value) => setTemplateFields((current) => ({ ...current, [key]: value }))}
           models={models}
           model={model}
           maxImages={maxImages}

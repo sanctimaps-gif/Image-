@@ -110,6 +110,26 @@ describe("POST /api/generate", () => {
     expect(((await (await listHistory()).json()) as HistoryResponse).generations).toEqual([]);
   });
 
+  it("construit le prompt d'un modèle créatif et conserve ses champs", async () => {
+    const res = await post({
+      prompt: "La cathédrale de Rouen au coucher du soleil",
+      model: "gpt-image-2",
+      template: "poster",
+      templateFields: { title: "ROUEN", tagline: "Une ville, une histoire" },
+      aspect: "story",
+      resolution: "hd",
+    });
+    expect(res.status).toBe(201);
+    const { generation } = (await res.json()) as GenerateResponse;
+    expect(generation.templateFields).toEqual({ title: "ROUEN", tagline: "Une ville, une histoire" });
+    expect(generation.settings).toMatchObject({ template: "poster", aspect: "story", resolution: "hd" });
+    expect(generation.prompt).toBe("La cathédrale de Rouen au coucher du soleil");
+    const call = provider.generateCalls[0]!;
+    expect(call.size).toBe("1440x2560");
+    expect(call.prompt).toContain('"ROUEN"');
+    expect(call.prompt).toContain("cinematic illustrated poster");
+  });
+
   it("valide le prompt côté serveur", async () => {
     const res = await post({ prompt: "" });
     expect(res.status).toBe(400);

@@ -1,9 +1,15 @@
 import { getStyle } from "@/lib/catalog";
-import type { StyleId } from "@/types/generation";
+import { buildTemplatePrompt } from "@/lib/templates";
+import type { StyleId, TemplateFields, TemplateId } from "@/types/generation";
 
-/** Assemble le prompt final envoyé au fournisseur à partir du texte saisi et du style choisi. */
-export function buildPrompt(userPrompt: string, style: StyleId): string {
-  const base = normalizePrompt(userPrompt);
+/** Assemble le prompt final envoyé au fournisseur : texte saisi, modèle créatif, puis style. */
+export function buildPrompt(
+  userPrompt: string,
+  style: StyleId,
+  template: TemplateId = "none",
+  fields: TemplateFields = {},
+): string {
+  const base = buildTemplatePrompt(template, normalizePrompt(userPrompt), fields);
   const suffix = getStyle(style).promptSuffix;
   return suffix ? `${base}\n\nStyle: ${suffix}` : base;
 }

@@ -1,4 +1,4 @@
-import type { AspectId, Background, OutputFormat, Quality, StyleId } from "@/types/generation";
+import type { AspectId, Background, OutputFormat, Quality, Resolution, StyleId } from "@/types/generation";
 
 /** Libellés et descripteurs de style. Partagé client/serveur (aucun secret). */
 export interface StyleDefinition {
@@ -75,6 +75,7 @@ export const ASPECT_LABELS: Record<AspectId, { label: string; ratio: string }> =
   portrait: { label: "Portrait", ratio: "2:3" },
   landscape: { label: "Paysage", ratio: "3:2" },
   widescreen: { label: "Grand écran", ratio: "16:9" },
+  story: { label: "Vertical", ratio: "9:16" },
 };
 
 export const QUALITY_LABELS: Record<Quality, string> = {
@@ -82,6 +83,11 @@ export const QUALITY_LABELS: Record<Quality, string> = {
   low: "Brouillon (rapide)",
   medium: "Standard",
   high: "Haute qualité",
+};
+
+export const RESOLUTION_LABELS: Record<Resolution, string> = {
+  standard: "Standard",
+  hd: "Haute définition",
 };
 
 export const BACKGROUND_LABELS: Record<Background, string> = {

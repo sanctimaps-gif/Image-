@@ -70,6 +70,13 @@ Tant que la clé est absente, l'interface affiche un encart explicatif, le bouto
 ## Fonctionnalités opérationnelles
 
 - Génération texte → image via `POST /v1/images/generations` (SDK `openai`).
+- **Types de création** (`lib/templates.ts`) : le serveur transforme une description courte et quelques champs en prompt détaillé et structuré.
+  - **Affiche épique** : titre, sous-titre, slogan et ambiance (tricolore, or et bleu nuit…) cités mot pour mot ; conseillé en 9:16 HD.
+  - **Fiche personnage** : planche de référence avec 5 vues en pied, 6 gros plans et des scènes d'action légendées, en exigeant le même personnage dans chaque case.
+  - **Infographie** : titre, étapes numérotées illustrées, encadré « Points clés ».
+  - **Photo sportive** : portrait d'athlète façon photographie éditoriale.
+
+  Choisir un type applique les réglages conseillés : GPT Image 2 (le plus fiable pour le texte sur l'image), format adapté, haute qualité, HD.
 - **Styles** : Photorealistic, Cinematic, Anime, Illustration, Digital art, 3D render, Fantasy, Minimalist, Watercolor, Pixel art, Logo design (ajoutés au prompt côté serveur — les modèles GPT Image n'ont pas de paramètre `style`).
 - **Formats selon les capacités réelles du modèle** :
 
@@ -79,10 +86,14 @@ Tant que la clé est absente, l'interface affiche un encart explicatif, le bouto
   | Portrait 2:3 | 1024×1536 | tous |
   | Paysage 3:2 | 1536×1024 | tous |
   | Grand écran 16:9 | 1536×864 | `gpt-image-2` uniquement (tailles libres multiples de 16) |
+  | Vertical 9:16 | 864×1536 | `gpt-image-2` uniquement |
+
+  **Haute définition** (`gpt-image-2`) : 1920×1920, 1536×2304, 2304×1536, 2560×1440 et 1440×2560. Toutes ces tailles restent sous la limite non expérimentale documentée (2560×1440 px de surface). Elles coûtent plus cher qu'en standard.
 
   Un format non pris en charge est affiché désactivé, et refusé par le serveur.
 - **Réglages avancés** reliés à l'API : modèle, nombre d'images (`n`), qualité (`low`/`medium`/`high`/`auto`), arrière-plan (`transparent` sur GPT Image 1/1.5/1-mini ; non proposé sur `gpt-image-2` où il n'est qu'en aperçu), format de fichier (PNG/JPEG/WebP) et compression.
 - **Variantes** : « Créer une variante » envoie l'image d'origine à `POST /v1/images/edits` avec le prompt (modifiable). L'ancien endpoint de variations DALL·E étant retiré, c'est la méthode documentée pour les modèles GPT Image.
+- Exemples cliquables reprenant ces rendus : affiches « Rouen » et « La France rayonne », fiche joueur de water-polo, infographie « Crawl polo », photo de football américain.
 - Résultat en grand format, miniatures si plusieurs images, **vue agrandie** (Échap, flèches), **téléchargement**, **copie du prompt**, **Réessayer**, **Modifier** (recharge prompt et réglages), affichage des paramètres utilisés.
 - **Historique persistant** (galerie responsive) : afficher, copier, réutiliser, télécharger, supprimer. Chaque génération et chaque image a un UUID.
 - États clairs : chargement animé au ratio demandé avec temps écoulé, **annulation** (propagée jusqu'à l'appel OpenAI), erreurs compréhensibles avec « Réessayer », images indisponibles.

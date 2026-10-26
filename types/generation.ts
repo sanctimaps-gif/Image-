@@ -19,7 +19,7 @@ export const STYLE_IDS = [
 ] as const;
 export type StyleId = (typeof STYLE_IDS)[number];
 
-export const ASPECT_IDS = ["square", "portrait", "landscape", "widescreen"] as const;
+export const ASPECT_IDS = ["square", "portrait", "landscape", "widescreen", "story"] as const;
 export type AspectId = (typeof ASPECT_IDS)[number];
 
 export const QUALITY_IDS = ["auto", "low", "medium", "high"] as const;
@@ -27,6 +27,15 @@ export type Quality = (typeof QUALITY_IDS)[number];
 
 export const BACKGROUND_IDS = ["auto", "opaque", "transparent"] as const;
 export type Background = (typeof BACKGROUND_IDS)[number];
+
+export const RESOLUTION_IDS = ["standard", "hd"] as const;
+export type Resolution = (typeof RESOLUTION_IDS)[number];
+
+export const TEMPLATE_IDS = ["none", "poster", "character-sheet", "infographic", "sport-photo"] as const;
+export type TemplateId = (typeof TEMPLATE_IDS)[number];
+
+/** Champs complémentaires d'un modèle créatif (titre, slogan, étapes…). */
+export type TemplateFields = Record<string, string>;
 
 export const OUTPUT_FORMAT_IDS = ["png", "jpeg", "webp"] as const;
 export type OutputFormat = (typeof OUTPUT_FORMAT_IDS)[number];
@@ -36,7 +45,9 @@ export interface GenerationSettings {
   providerId: string;
   model: string;
   style: StyleId;
+  template: TemplateId;
   aspect: AspectId;
+  resolution: Resolution;
   quality: Quality;
   background: Background;
   outputFormat: OutputFormat;
@@ -63,6 +74,8 @@ export interface Generation {
   prompt: string;
   /** Image d'origine pour une variante. */
   sourceImageId: string | null;
+  /** Champs du modèle créatif utilisé (vide sans modèle). */
+  templateFields: TemplateFields;
   settings: GenerationSettings;
   size: string;
   images: GeneratedImage[];
@@ -74,6 +87,8 @@ export interface ModelFormat {
   size: string;
   width: number;
   height: number;
+  /** Variante haute définition, si le modèle accepte des tailles libres. */
+  hd?: { size: string; width: number; height: number };
 }
 
 /** Capacités réelles d'un modèle, exposées au client pour construire les contrôles. */

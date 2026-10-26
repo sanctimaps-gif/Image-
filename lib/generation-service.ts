@@ -71,7 +71,7 @@ export class GenerationService {
   async generate(command: GenerateCommand): Promise<Generation> {
     const request = parseGenerateRequest(command.body);
     const resolved = resolveGeneration(request, this.deps.providers);
-    const { provider, format, settings } = resolved;
+    const { provider, size, settings } = resolved;
 
     const clientKeys = [`owner:${command.ownerId}`, ...(command.clientIp ? [`ip:${command.clientIp}`] : [])];
 
@@ -99,8 +99,8 @@ export class GenerationService {
 
       const providerRequest = {
         model: settings.model,
-        prompt: buildPrompt(request.prompt, settings.style),
-        size: format.size,
+        prompt: buildPrompt(request.prompt, settings.style, settings.template, request.templateFields),
+        size: size.size,
         count: settings.count,
         quality: settings.quality,
         background: settings.background,
@@ -131,7 +131,7 @@ export class GenerationService {
         for (const image of result.images) {
           const mimeType = detectImageMime(image.data);
           if (!mimeType) continue; // donnée non reconnue comme image : jamais présentée comme un résultat
-          const dimensions = readImageSize(image.data) ?? { width: format.width, height: format.height };
+          const dimensions = readImageSize(image.data) ?? { width: size.width, height: size.height };
           const id = randomUUID();
           await this.deps.store.saveImage(command.ownerId, id, { data: image.data, mimeType });
           images.push({ id, url: `/api/images/${id}`, mimeType, ...dimensions });
@@ -146,6 +146,7 @@ export class GenerationService {
           kind: source ? "variation" : "text-to-image",
           prompt: request.prompt,
           sourceImageId: request.sourceImageId,
+          templateFields: request.templateFields,
           settings: { ...settings, count: images.length },
           size: result.size ?? `${images[0]!.width}x${images[0]!.height}`,
           images,
