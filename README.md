@@ -6,7 +6,7 @@ Application web de génération d'images par IA : l'utilisateur décrit une imag
 - **Tailwind CSS 4**, mode clair/sombre, interface responsive et accessible au clavier
 - **Zod** pour la validation côté serveur
 - **SDK officiel `openai`** pour l'appel au fournisseur
-- **Vitest** pour les tests (58 tests, dont la route de génération)
+- **Vitest** pour les tests (69 tests, dont la route de génération)
 
 ---
 
