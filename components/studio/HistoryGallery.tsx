@@ -10,6 +10,7 @@ import type { Generation } from "@/types/generation";
 
 interface HistoryGalleryProps {
   items: Generation[];
+  ephemeral: boolean;
   status: HistoryStatus;
   error: string | null;
   activeId: string | null;
@@ -22,6 +23,7 @@ interface HistoryGalleryProps {
 
 export function HistoryGallery({
   items,
+  ephemeral,
   status,
   error,
   activeId,
@@ -39,7 +41,9 @@ export function HistoryGallery({
             Vos créations
           </h2>
           <p className="text-sm text-muted">
-            Conservées sur ce serveur et associées à ce navigateur.
+            {ephemeral
+              ? "Associées à ce navigateur. Stockage temporaire : téléchargez les images à garder, l'historique peut être effacé."
+              : "Conservées sur ce serveur et associées à ce navigateur."}
           </p>
         </div>
         {status === "ready" && items.length > 0 && (

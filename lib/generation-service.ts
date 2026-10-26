@@ -23,6 +23,8 @@ export interface GenerationServiceDeps {
   limits: GenerationLimits;
   /** Hachage de l'identifiant client transmis au fournisseur. */
   hashOwnerId: (ownerId: string) => string;
+  /** Vrai si l'historique peut disparaître (stockage temporaire d'une plateforme serverless). */
+  ephemeralStorage?: boolean;
   now?: () => number;
 }
 
@@ -65,6 +67,7 @@ export class GenerationService {
         defaultModel: p.defaultModel(),
       })),
       limits: { maxPromptLength: MAX_PROMPT_LENGTH, maxImagesPerRequest: this.deps.limits.maxImagesPerRequest },
+      ephemeralStorage: this.deps.ephemeralStorage ?? false,
     };
   }
 

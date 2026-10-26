@@ -118,6 +118,8 @@ export interface AppConfig {
     maxPromptLength: number;
     maxImagesPerRequest: number;
   };
+  /** Historique stocké temporairement (ex. Vercel) : il peut être effacé. */
+  ephemeralStorage: boolean;
 }
 
 export type ApiErrorCode =

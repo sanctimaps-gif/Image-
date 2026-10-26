@@ -10,6 +10,19 @@ Application web de génération d'images par IA : l'utilisateur décrit une imag
 
 ---
 
+## Mettre l'application en ligne (depuis un téléphone ou un ordinateur)
+
+Ce dépôt contient le **code source**. Pour obtenir une adresse web utilisable (`https://….vercel.app`), déployez-le gratuitement sur Vercel :
+
+1. Ouvrez <https://vercel.com/signup> et choisissez **Continue with GitHub**.
+2. Cliquez sur **Add New… → Project**, puis **Import** à côté du dépôt `Image-` (autorisez l'accès au dépôt si Vercel le demande).
+3. Dans **Environment Variables**, ajoutez `OPENAI_API_KEY` avec votre clé OpenAI (<https://platform.openai.com/api-keys>).
+4. Cliquez sur **Deploy**. Après 1 à 2 minutes, Vercel affiche l'adresse de votre application : ouvrez-la sur votre téléphone.
+
+Sur Vercel, l'historique est stocké dans un dossier temporaire : il fonctionne mais peut être effacé quand le serveur est recyclé (l'interface le signale). Téléchargez les images que vous voulez garder. Pour un historique permanent, voir « Limitations connues ».
+
+---
+
 ## Installation
 
 Prérequis : **Node.js ≥ 20.9** (testé avec Node 22) et npm.
@@ -56,7 +69,7 @@ Tant que la clé est absente, l'interface affiche un encart explicatif, le bouto
 | `OPENAI_IMAGE_DEFAULT_MODEL` | `gpt-image-1.5` | Modèle sélectionné par défaut |
 | `OPENAI_TIMEOUT_MS` | `240000` | Délai maximal d'un appel au fournisseur |
 | `OPENAI_BASE_URL` | — | Passerelle compatible OpenAI (optionnel) |
-| `STORAGE_DIR` | `.data` | Stockage des images et de l'historique |
+| `STORAGE_DIR` | `.data` (dossier temporaire sur Vercel) | Stockage des images et de l'historique |
 | `HISTORY_LIMIT` | `100` | Générations conservées par navigateur |
 | `RATE_LIMIT_REQUESTS_PER_MINUTE` | `6` | Requêtes de génération / minute / client |
 | `RATE_LIMIT_IMAGES_PER_DAY` | `40` | Images / jour (UTC) / client |
@@ -144,7 +157,7 @@ tests/                         tests Vitest
 ## Limitations connues
 
 - **Pas testé contre l'API OpenAI réelle dans cet environnement** : aucune clé n'était disponible et l'accès réseau à OpenAI était bloqué. Les paramètres ont été vérifiés dans les types du SDK officiel `openai@7.43.0`, et le parcours complet a été validé dans un navigateur contre un serveur local imitant les endpoints `/v1/images/generations` et `/v1/images/edits` (requêtes HTTP réelles via le SDK).
-- Stockage sur le disque local : adapté à un serveur unique (VPS, conteneur avec volume). Sur une plateforme serverless au disque éphémère (Vercel…), il faut une implémentation `GenerationStore` base de données + stockage objet.
+- Stockage sur le disque local : adapté à un serveur unique (VPS, conteneur avec volume). Sur Vercel, il bascule automatiquement sur le dossier temporaire (historique non garanti) ; pour un historique durable, il faut une implémentation `GenerationStore` base de données + stockage objet (Vercel Blob, S3…).
 - Limiteurs en mémoire : remis à zéro au redémarrage et non partagés entre instances (prévoir Redis/Upstash en multi-instances).
 - Sans `TRUST_PROXY_HEADERS`, la limitation est par cookie : un client qui efface ses cookies obtient un nouveau quota (le plafond global quotidien reste la protection de coût).
 - L'historique est lié au navigateur (cookie) : il n'est pas synchronisé entre appareils.

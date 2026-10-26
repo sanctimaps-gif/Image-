@@ -15,7 +15,9 @@ const envSchema = z.object({
   OPENAI_IMAGE_MODELS: z.string().optional().default("gpt-image-2,gpt-image-1.5,gpt-image-1-mini"),
   OPENAI_IMAGE_DEFAULT_MODEL: z.string().optional().default("gpt-image-1.5"),
   OPENAI_TIMEOUT_MS: intString(240_000, 10_000, 900_000),
-  STORAGE_DIR: z.string().optional().default(".data"),
+  // Vide : `.data` en local, dossier temporaire sur les plateformes serverless (disque en lecture seule).
+  STORAGE_DIR: z.string().trim().optional().default(""),
+  VERCEL: z.string().optional(),
   HISTORY_LIMIT: intString(100, 1, 1000),
   RATE_LIMIT_REQUESTS_PER_MINUTE: intString(6, 1, 1000),
   RATE_LIMIT_IMAGES_PER_DAY: intString(40, 1, 100_000),

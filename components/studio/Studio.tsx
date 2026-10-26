@@ -299,6 +299,7 @@ export function Studio({ config }: { config: AppConfig }) {
 
       <HistoryGallery
         items={history.items}
+        ephemeral={config.ephemeralStorage}
         status={history.status}
         error={history.error}
         activeId={current?.id ?? null}

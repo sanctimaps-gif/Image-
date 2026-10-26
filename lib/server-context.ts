@@ -1,4 +1,5 @@
 import "server-only";
+import os from "node:os";
 import path from "node:path";
 import { getServerEnv } from "@/lib/env";
 import { GenerationService } from "@/lib/generation-service";
@@ -17,8 +18,9 @@ export function getGenerationService(): GenerationService {
     const env = getServerEnv();
     globalForService.__visionaiService = new GenerationService({
       providers: createProviders(),
-      store: new FileGenerationStore(path.resolve(/*turbopackIgnore: true*/ process.cwd(), env.STORAGE_DIR), env.HISTORY_LIMIT),
+      store: new FileGenerationStore(resolveStorageDir(env.STORAGE_DIR, Boolean(env.VERCEL)), env.HISTORY_LIMIT),
       hashOwnerId,
+      ephemeralStorage: !env.STORAGE_DIR && Boolean(env.VERCEL),
       limits: {
         requestsPerMinute: env.RATE_LIMIT_REQUESTS_PER_MINUTE,
         imagesPerDay: env.RATE_LIMIT_IMAGES_PER_DAY,
@@ -29,4 +31,14 @@ export function getGenerationService(): GenerationService {
     });
   }
   return globalForService.__visionaiService;
+}
+
+/**
+ * Sur Vercel, seul le dossier temporaire est inscriptible : l'historique y fonctionne
+ * mais peut être effacé quand l'instance est recyclée.
+ */
+function resolveStorageDir(configured: string, serverless: boolean): string {
+  if (configured) return path.resolve(/*turbopackIgnore: true*/ process.cwd(), configured);
+  if (serverless) return path.join(/*turbopackIgnore: true*/ os.tmpdir(), "visionai-data");
+  return path.resolve(/*turbopackIgnore: true*/ process.cwd(), ".data");
 }
