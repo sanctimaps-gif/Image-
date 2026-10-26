@@ -1,0 +1,162 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  --bg: #fafafa;
+  --bg-elevated: #ffffff;
+  --surface: #f3f3f5;
+  --surface-hover: #ebebef;
+  --border: #e4e4e9;
+  --border-strong: #d2d2da;
+  --text: #121217;
+  --text-muted: #5f5f6b;
+  --text-subtle: #8a8a96;
+  --accent: #5b4cf0;
+  --accent-hover: #4b3bdf;
+  --accent-soft: #eeebff;
+  --accent-contrast: #ffffff;
+  --danger: #c4293d;
+  --danger-soft: #fdecee;
+  --success: #12805c;
+  --warning-soft: #fff6e5;
+  --warning: #8a5a00;
+  --ring: rgb(91 76 240 / 0.45);
+  --shadow-card: 0 1px 2px rgb(18 18 23 / 0.04), 0 8px 24px -12px rgb(18 18 23 / 0.12);
+  --shadow-pop: 0 2px 4px rgb(18 18 23 / 0.06), 0 24px 48px -16px rgb(18 18 23 / 0.22);
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #0d0d11;
+  --bg-elevated: #15151b;
+  --surface: #1b1b22;
+  --surface-hover: #24242d;
+  --border: #2a2a33;
+  --border-strong: #3a3a46;
+  --text: #f2f2f5;
+  --text-muted: #a5a5b2;
+  --text-subtle: #767684;
+  --accent: #8b7dff;
+  --accent-hover: #9d91ff;
+  --accent-soft: #232042;
+  --accent-contrast: #0d0d11;
+  --danger: #ff7b8b;
+  --danger-soft: #3a1820;
+  --success: #4fd1a1;
+  --warning-soft: #33280f;
+  --warning: #f3c461;
+  --ring: rgb(139 125 255 / 0.55);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --shadow-pop: 0 2px 4px rgb(0 0 0 / 0.4), 0 24px 48px -16px rgb(0 0 0 / 0.8);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-elevated: var(--bg-elevated);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--text);
+  --color-muted: var(--text-muted);
+  --color-subtle: var(--text-subtle);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --shadow-card: var(--shadow-card);
+  --shadow-pop: var(--shadow-pop);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --animate-shimmer: shimmer 2.2s linear infinite;
+  --animate-fade-in: fade-in 0.35s ease-out both;
+  --animate-pulse-soft: pulse-soft 2.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+html {
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+dialog::backdrop {
+  background: rgb(8 8 12 / 0.78);
+  backdrop-filter: blur(6px);
+}
+
+.shimmer {
+  background-image: linear-gradient(
+    100deg,
+    var(--surface) 20%,
+    var(--surface-hover) 40%,
+    var(--accent-soft) 50%,
+    var(--surface-hover) 60%,
+    var(--surface) 80%
+  );
+  background-size: 200% 100%;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Damier pour visualiser la transparence des images. */
+.checkerboard {
+  background-color: var(--surface);
+  background-image:
+    linear-gradient(45deg, var(--surface-hover) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--surface-hover) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--surface-hover) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--surface-hover) 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

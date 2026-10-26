@@ -1,0 +1,28 @@
+# dépendances
+/node_modules
+
+# build Next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+*.tsbuildinfo
+
+# tests
+/coverage
+
+# secrets — ne jamais versionner
+.env
+.env*.local
+.env.development
+.env.production
+!.env.example
+
+# stockage local des images générées et de l'historique
+/.data/
+
+# divers
+.DS_Store
+*.log
+npm-debug.log*
+.vercel
