@@ -19,7 +19,7 @@ Cette version ne dépend d'**aucun service d'IA** (ni ChatGPT/OpenAI, ni autre A
 - **Première utilisation** : le modèle (`onnx-community/Janus-Pro-1B-ONNX`, environ 1 Go) est téléchargé une seule fois depuis Hugging Face, puis conservé dans le cache du navigateur. Ce n'est qu'un téléchargement de fichiers : aucune description ni image n'est envoyée.
 - **Compatibilité** : WebGPU est indispensable : Safari sur iOS 26 ou plus récent, Chrome / Edge récents sur ordinateur et Android. Sur téléphone, la mémoire disponible peut être insuffisante ; un ordinateur avec une carte graphique est plus confortable.
 - **Limites du modèle** : images carrées de 384 × 384 px, meilleure compréhension de l'anglais, texte écrit sur l'image peu fiable. La qualité est nettement inférieure aux grands modèles commerciaux.
-- Le moteur ONNX Runtime est servi par le site lui-même (`site/ort/`), sans CDN tiers.
+- Le moteur ONNX Runtime est servi par le site lui-même (`/ort/`), sans CDN tiers.
 - L'historique et les images restent dans le navigateur (IndexedDB), sur l'appareil utilisé.
 
 La version serveur (dossier `app/api`) peut toujours utiliser l'API OpenAI si vous le souhaitez ; elle n'est pas utilisée par le site en ligne.
@@ -35,12 +35,11 @@ Un banc d'entraînement « par les prompts » : 8 modules, 40 exercices (compré
 
 Il ne s'agit pas de réentraîner le modèle : modifier ses paramètres (PyTorch, LoRA, AdamW) demande une carte graphique et un jeu de données, hors de portée d'un navigateur.
 
-Mettre à jour le site après une modification du code :
+**Publication automatique** : à chaque mise à jour de la branche, GitHub Actions (`.github/workflows/pages.yml`) installe les dépendances, lance les tests, construit le site (`npm run build:pages`, résultat dans `pages-dist/`, non versionné) et le publie.
 
-```bash
-npm run build:pages   # régénère site/, index.html et .nojekyll
-git add site index.html .nojekyll && git commit -m "Mettre à jour le site" && git push
-```
+Réglage à faire une seule fois : **Settings → Pages → Build and deployment → Source : « GitHub Actions »**.
+
+Construire le site en local pour le tester : `npm run build:pages` puis servir `pages-dist/` sous le chemin `/Image-/`.
 
 ---
 

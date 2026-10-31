@@ -1,13 +1,14 @@
-// Construit la version statique de VisionAI pour GitHub Pages.
+// Construit la version en ligne de VisionAI pour GitHub Pages (exécuté par GitHub Actions,
+// voir .github/workflows/pages.yml). Le résultat, dans pages-dist/, n'est pas versionné.
 // Les routes /api (serveur) sont mises de côté le temps du build puis restaurées.
-// Résultat : dossier site/ + index.html de redirection et .nojekyll à la racine du dépôt.
 import { spawnSync } from "node:child_process";
-import { cpSync, existsSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
 const repo = process.env.PAGES_REPO_NAME ?? "Image-";
-const basePath = `/${repo}/site`;
+const basePath = `/${repo}`;
+const output = path.join(root, "pages-dist");
 const api = path.join(root, "app", "api");
 const parked = path.join(root, ".api-build-pages");
 
@@ -35,30 +36,19 @@ try {
 }
 if (status !== 0) process.exit(status);
 
-rmSync(path.join(root, "site"), { recursive: true, force: true });
-cpSync(path.join(root, "out"), path.join(root, "site"), { recursive: true });
-rmSync(path.join(root, "out"), { recursive: true, force: true });
+rmSync(output, { recursive: true, force: true });
+renameSync(path.join(root, "out"), output);
+
+// Les source maps sont inutiles en ligne.
+for (const file of readdirSync(output, { recursive: true })) {
+  if (String(file).endsWith(".map")) rmSync(path.join(output, String(file)));
+}
 
 // Moteur ONNX Runtime (WebAssembly + WebGPU) servi par le site lui-même, sans CDN tiers.
 const ortDist = path.join(root, "node_modules", "onnxruntime-web", "dist");
 for (const file of ["ort-wasm-simd-threaded.asyncify.mjs", "ort-wasm-simd-threaded.asyncify.wasm"]) {
-  cpSync(path.join(ortDist, file), path.join(root, "site", "ort", file));
+  cpSync(path.join(ortDist, file), path.join(output, "ort", file));
 }
+writeFileSync(path.join(output, ".nojekyll"), "");
 
-writeFileSync(path.join(root, ".nojekyll"), "");
-writeFileSync(
-  path.join(root, "index.html"),
-  `<!doctype html>
-<html lang="fr">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VisionAI</title>
-<meta http-equiv="refresh" content="0; url=./site/">
-<link rel="canonical" href="./site/">
-</head>
-<body><p><a href="./site/">Ouvrir VisionAI</a></p></body>
-</html>
-`,
-);
-console.log(`\nSite statique prêt dans site/ (servi sous ${basePath}/).`);
+console.log(`\nSite prêt dans pages-dist/ (servi sous ${basePath}/).`);
