@@ -154,6 +154,7 @@ export function Studio({ config, renderProviderSetup }: StudioProps) {
       outputCompression: s.outputFormat === "png" ? null : s.outputCompression,
       count: s.count,
       sourceImageId,
+      enhancePrompt: Boolean(model?.supportsPromptEnhancement) && s.enhancePrompt,
     };
   }
 

@@ -43,6 +43,7 @@ export const generateRequestSchema = z.strictObject({
   outputCompression: z.number().int().min(0).max(100).nullable().default(null),
   count: z.number().int().min(1).max(10).default(1),
   sourceImageId: uuidSchema.nullable().default(null),
+  enhancePrompt: z.boolean().default(false),
 });
 
 export type GenerateRequestInput = z.input<typeof generateRequestSchema>;

@@ -13,6 +13,8 @@ export interface ProviderGenerateRequest {
   /** Identifiant opaque (haché) de l'utilisateur final, pour la détection d'abus du fournisseur. */
   safetyIdentifier: string;
   signal?: AbortSignal;
+  /** Faire réécrire la demande par le modèle de langage avant la génération. */
+  enhancePrompt?: boolean;
   /** Avancement réel, pour les fournisseurs qui le connaissent (modèle local). */
   onProgress?: (progress: GenerationProgressInfo) => void;
 }
@@ -36,6 +38,8 @@ export interface ProviderResult {
   images: ProviderImage[];
   /** Taille effectivement produite, si le fournisseur la renvoie. */
   size: string | null;
+  /** Consigne réellement utilisée, si le fournisseur l'a réécrite. */
+  revisedPrompt?: string | null;
 }
 
 /**

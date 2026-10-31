@@ -114,6 +114,9 @@ export class GenerationService {
         safetyIdentifier: this.deps.hashOwnerId(command.ownerId),
         signal: command.signal,
         onProgress: command.onProgress,
+        // Réécriture réservée aux descriptions libres : les modèles créatifs sont déjà structurés.
+        enhancePrompt:
+          request.enhancePrompt && settings.template === "none" && Boolean(resolved.model.supportsPromptEnhancement),
       };
 
       let result: ProviderResult;
@@ -153,6 +156,7 @@ export class GenerationService {
           prompt: request.prompt,
           sourceImageId: request.sourceImageId,
           templateFields: request.templateFields,
+          revisedPrompt: result.revisedPrompt ?? null,
           settings: { ...settings, count: images.length },
           size: result.size ?? `${images[0]!.width}x${images[0]!.height}`,
           images,

@@ -14,6 +14,7 @@ export const LOCAL_MODEL: ModelInfo = {
   supportsTransparency: false,
   supportsVariations: false,
   maxImages: 1,
+  supportsPromptEnhancement: true,
 };
 
 const MESSAGES: Record<Exclude<LocalErrorCode, "INTERRUPTED">, string> = {
@@ -73,13 +74,19 @@ export class LocalImageProvider implements ImageProvider {
           request.onProgress?.(
             message.phase === "download"
               ? { phase: "download", loaded: message.loaded, total: message.total }
-              : { phase: "generate", ratio: message.ratio },
+              : message.phase === "understand"
+                ? { phase: "understand" }
+                : { phase: "generate", ratio: message.ratio },
           );
           return;
         }
         cleanup();
         if (message.type === "done") {
-          resolve({ images: [{ data: new Uint8Array(message.png), mimeType: "image/png" }], size: LOCAL_MODEL.formats[0]!.size });
+          resolve({
+            images: [{ data: new Uint8Array(message.png), mimeType: "image/png" }],
+            size: LOCAL_MODEL.formats[0]!.size,
+            revisedPrompt: message.revisedPrompt,
+          });
         } else if (message.code === "INTERRUPTED") {
           reject(new AppError("CANCELLED", "La génération a été annulée."));
         } else {
@@ -104,7 +111,13 @@ export class LocalImageProvider implements ImageProvider {
       worker.addEventListener("message", onMessage);
       worker.addEventListener("error", onCrash);
       request.signal?.addEventListener("abort", onAbort, { once: true });
-      worker.postMessage({ type: "generate", id, prompt: request.prompt, assetBase: this.assetBase } satisfies WorkerRequest);
+      worker.postMessage({
+        type: "generate",
+        id,
+        prompt: request.prompt,
+        enhance: request.enhancePrompt ?? false,
+        assetBase: this.assetBase,
+      } satisfies WorkerRequest);
     });
   }
 }

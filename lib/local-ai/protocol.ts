@@ -5,13 +5,14 @@ export const LOCAL_MODEL_ID = "onnx-community/Janus-Pro-1B-ONNX";
 export const LOCAL_IMAGE_SIZE = 384;
 
 export type WorkerRequest =
-  | { type: "generate"; id: number; prompt: string; assetBase: string | null }
+  | { type: "generate"; id: number; prompt: string; enhance: boolean; assetBase: string | null }
   | { type: "interrupt" };
 
 export type LocalErrorCode = "WEBGPU_UNAVAILABLE" | "DOWNLOAD_FAILED" | "OUT_OF_MEMORY" | "INTERRUPTED" | "FAILED";
 
 export type WorkerResponse =
   | { type: "progress"; id: number; phase: "download"; loaded: number; total: number }
+  | { type: "progress"; id: number; phase: "understand" }
   | { type: "progress"; id: number; phase: "generate"; ratio: number }
-  | { type: "done"; id: number; png: ArrayBuffer }
+  | { type: "done"; id: number; png: ArrayBuffer; revisedPrompt: string | null }
   | { type: "error"; id: number; code: LocalErrorCode; detail: string };

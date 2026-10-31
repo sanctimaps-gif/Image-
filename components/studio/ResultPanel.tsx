@@ -94,6 +94,15 @@ export function ResultPanel({
             <p className="max-h-40 overflow-y-auto text-sm leading-relaxed whitespace-pre-wrap text-fg">{generation.prompt}</p>
           </div>
 
+          {generation.revisedPrompt && (
+            <div>
+              <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-subtle">Demande comprise par l&apos;IA</p>
+              <p lang="en" className="max-h-40 overflow-y-auto text-sm leading-relaxed text-muted">
+                {generation.revisedPrompt}
+              </p>
+            </div>
+          )}
+
           <div className="flex flex-wrap gap-2">
             <ButtonLink href={backend.download(image).href} download={backend.download(image).filename}>
               <Download className="h-4 w-4" aria-hidden />

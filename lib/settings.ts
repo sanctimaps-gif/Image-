@@ -23,6 +23,8 @@ export interface ComposerSettings {
   outputFormat: OutputFormat;
   outputCompression: number;
   count: number;
+  /** Étape de compréhension : réécriture de la demande par le modèle de langage. */
+  enhancePrompt: boolean;
 }
 
 export const DEFAULT_SETTINGS: Omit<ComposerSettings, "model"> = {
@@ -35,6 +37,7 @@ export const DEFAULT_SETTINGS: Omit<ComposerSettings, "model"> = {
   outputFormat: "png",
   outputCompression: 90,
   count: 1,
+  enhancePrompt: true,
 };
 
 /**
@@ -70,6 +73,7 @@ export function settingsFromGeneration(settings: GenerationSettings): ComposerSe
     outputFormat: settings.outputFormat,
     outputCompression: settings.outputCompression ?? DEFAULT_SETTINGS.outputCompression,
     count: settings.count,
+    enhancePrompt: DEFAULT_SETTINGS.enhancePrompt,
   };
 }
 

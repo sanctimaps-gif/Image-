@@ -36,18 +36,28 @@ export function GenerationProgress({ startedAt, prompt, format, count, progress 
 
   const elapsed = Math.max(0, Math.floor((now - startedAt) / 1000));
   const done =
-    progress?.phase === "download" ? (progress.total > 0 ? progress.loaded / progress.total : 0) : (progress?.ratio ?? null);
+    progress?.phase === "download"
+      ? progress.total > 0
+        ? progress.loaded / progress.total
+        : 0
+      : progress?.phase === "generate"
+        ? progress.ratio
+        : null;
   const step =
     progress?.phase === "download"
       ? `Téléchargement du modèle : ${formatMb(progress.loaded)} / ${formatMb(progress.total)} Mo`
-      : progress?.phase === "generate"
-        ? `Création de l'image : ${Math.round(progress.ratio * 100)} %`
+      : progress?.phase === "understand"
+        ? "Étape 1/2 · Compréhension de votre demande…"
+        : progress?.phase === "generate"
+          ? `Étape 2/2 · Création de l'image : ${Math.round(progress.ratio * 100)} %`
         : STEPS[Math.min(STEPS.length - 1, Math.floor(elapsed / 12))];
   const hint =
     progress?.phase === "download"
       ? "Première utilisation uniquement : le modèle sera ensuite conservé par le navigateur."
-      : progress
-        ? "Calcul en cours sur votre appareil."
+      : progress?.phase === "understand"
+        ? "le modèle de langage traduit et précise votre description."
+        : progress
+          ? "calcul en cours sur votre appareil."
         : "une image haute qualité peut prendre jusqu'à deux minutes";
   const ratio = format ? `${format.width} / ${format.height}` : "1 / 1";
   const tiles = Math.min(count, 4);

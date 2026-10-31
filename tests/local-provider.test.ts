@@ -44,7 +44,7 @@ describe("LocalImageProvider", () => {
       if (message.type !== "generate") return;
       w.emit({ type: "progress", id: message.id, phase: "download", loaded: 50, total: 100 });
       w.emit({ type: "progress", id: message.id, phase: "generate", ratio: 0.5 });
-      w.emit({ type: "done", id: message.id, png: new Uint8Array(fakePng(384, 384)).buffer });
+      w.emit({ type: "done", id: message.id, png: new Uint8Array(fakePng(384, 384)).buffer, revisedPrompt: "A lighthouse in a storm at night" });
     });
     const progress: unknown[] = [];
     const result = await provider(worker).generate({ ...request, onProgress: (p) => progress.push(p) });

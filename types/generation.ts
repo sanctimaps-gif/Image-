@@ -76,6 +76,8 @@ export interface Generation {
   sourceImageId: string | null;
   /** Champs du modèle créatif utilisé (vide sans modèle). */
   templateFields: TemplateFields;
+  /** Consigne réécrite par le modèle de langage avant la génération (étape « compréhension »). */
+  revisedPrompt?: string | null;
   settings: GenerationSettings;
   size: string;
   images: GeneratedImage[];
@@ -102,6 +104,8 @@ export interface ModelInfo {
   supportsTransparency: boolean;
   supportsVariations: boolean;
   maxImages: number;
+  /** Le modèle sait réécrire la demande (traduction, précisions) avant de générer l'image. */
+  supportsPromptEnhancement?: boolean;
 }
 
 export interface ProviderInfo {
@@ -156,6 +160,7 @@ export interface ApiErrorBody {
 /** Avancement d'une génération exécutée sur l'appareil (téléchargement du modèle puis calcul). */
 export type GenerationProgressInfo =
   | { phase: "download"; loaded: number; total: number }
+  | { phase: "understand" }
   | { phase: "generate"; ratio: number };
 
 export interface GenerateResponse {

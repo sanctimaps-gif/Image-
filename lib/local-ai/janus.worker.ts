@@ -81,7 +81,38 @@ class ProgressStreamer extends BaseStreamer {
   }
 }
 
-async function generate(id: number, prompt: string, assetBase: string | null) {
+/**
+ * Étape « compréhension » : le modèle de langage de Janus-Pro réécrit la demande en une consigne
+ * anglaise détaillée (langue qu'il maîtrise le mieux), sans rien inventer d'incompatible.
+ */
+const ENHANCE_INSTRUCTION = `You prepare prompts for an image generator.
+Rewrite the request below as ONE detailed English image prompt.
+Keep every element of the request: subjects, colours, positions, relations between objects, setting, lighting, mood and style.
+Add useful visual details (composition, lighting, materials) only if they fit the request.
+Do not add any text, letters or watermark to the image.
+Answer with the prompt only, on a single line, without quotes or comments.
+
+Request: `;
+
+async function enhancePrompt(processor: Processor, model: MultiModalityCausalLM, prompt: string): Promise<string | null> {
+  const inputs = await processor([{ role: "<|User|>", content: ENHANCE_INSTRUCTION + prompt }]);
+  const promptLength = (inputs.input_ids as { dims: number[] }).dims.at(-1)!;
+  const output = (await model.generate({
+    ...inputs,
+    max_new_tokens: 160,
+    do_sample: false,
+    stopping_criteria: stopping,
+  })) as { slice: (...args: unknown[]) => unknown };
+  const newTokens = output.slice(null, [promptLength, null]);
+  const [text] = (processor as unknown as { batch_decode: (t: unknown, o: object) => string[] }).batch_decode(newTokens, {
+    skip_special_tokens: true,
+  });
+  const cleaned = (text ?? "").replace(/\s+/g, " ").replace(/^["'«\s]+|["'»\s]+$/g, "").trim();
+  // Une réponse vide ou trop courte est ignorée : on garde alors la description d'origine.
+  return cleaned.length >= 12 ? cleaned.slice(0, 1500) : null;
+}
+
+async function generate(id: number, prompt: string, enhance: boolean, assetBase: string | null) {
   try {
     loading ??= load(id, assetBase).catch((error) => {
       loading = null;
@@ -90,7 +121,14 @@ async function generate(id: number, prompt: string, assetBase: string | null) {
     const { processor, model } = await loading;
     stopping.reset();
 
-    const conversation = [{ role: "<|User|>", content: prompt }];
+    let revisedPrompt: string | null = null;
+    if (enhance) {
+      post({ type: "progress", id, phase: "understand" });
+      revisedPrompt = await enhancePrompt(processor, model, prompt);
+      if (stopping.interrupted) throw localError("INTERRUPTED", "interrompu");
+    }
+
+    const conversation = [{ role: "<|User|>", content: revisedPrompt ?? prompt }];
     const inputs = await processor(conversation, { chat_template: "text_to_image" });
     const numImageTokens = (processor as unknown as { num_image_tokens: number }).num_image_tokens;
     let lastSent = 0;
@@ -114,7 +152,7 @@ async function generate(id: number, prompt: string, assetBase: string | null) {
     if (!image) throw localError("FAILED", "aucune image produite");
     const blob: Blob = await image.toBlob("image/png");
     const png = await blob.arrayBuffer();
-    post({ type: "done", id, png }, [png]);
+    post({ type: "done", id, png, revisedPrompt }, [png]);
   } catch (error) {
     const coded = error as { localCode?: LocalErrorCode };
     const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
@@ -136,5 +174,5 @@ function localError(code: LocalErrorCode, message: string) {
 self.addEventListener("message", (event: MessageEvent<WorkerRequest>) => {
   const message = event.data;
   if (message.type === "interrupt") stopping.interrupt();
-  else if (message.type === "generate") void generate(message.id, message.prompt, message.assetBase);
+  else if (message.type === "generate") void generate(message.id, message.prompt, message.enhance, message.assetBase);
 });

@@ -103,6 +103,24 @@ export function AdvancedSettings({ models, model, settings, maxImages, onChange 
         }))}
       />
 
+      {model?.supportsPromptEnhancement && (
+        <label className="flex min-w-0 cursor-pointer items-start gap-3 sm:col-span-2">
+          <input
+            type="checkbox"
+            checked={settings.enhancePrompt}
+            onChange={(e) => onChange({ enhancePrompt: e.target.checked })}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--accent)]"
+          />
+          <span className="text-sm">
+            <span className="font-medium text-fg">Comprendre la demande avant de générer</span>
+            <span className="block text-xs text-muted">
+              Le modèle de langage traduit votre description en anglais et la précise (sujets, couleurs, positions, lumière),
+              puis le générateur crée l&apos;image. Plus fidèle, un peu plus long. Sans effet sur les types de création.
+            </span>
+          </span>
+        </label>
+      )}
+
       {settings.outputFormat !== "png" && (
         <div className="min-w-0">
           <label htmlFor={compressionId} className="mb-2 flex justify-between text-xs font-medium uppercase tracking-wide text-subtle">
