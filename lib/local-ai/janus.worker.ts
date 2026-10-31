@@ -87,9 +87,13 @@ class ProgressStreamer extends BaseStreamer {
  */
 const ENHANCE_INSTRUCTION = `You prepare prompts for an image generator.
 Rewrite the request below as ONE detailed English image prompt.
-Keep every element of the request: subjects, colours, positions, relations between objects, setting, lighting, mood and style.
-Add useful visual details (composition, lighting, materials) only if they fit the request.
-Do not add any text, letters or watermark to the image.
+Keep every element of the request exactly: subjects, colours, positions, relations between objects, setting, lighting, mood and style.
+If the request is short or vague, complete only what is missing, choosing details that go well together:
+- setting: where the subject is;
+- lighting and mood: time of day, weather, light direction, warm/cool contrast;
+- composition: camera angle and framing; for large subjects, small people or objects to show the scale;
+- rendering: medium and quality, for example detailed photography, painting or illustration.
+Never contradict the request. Do not add any text, letters or watermark to the image.
 Answer with the prompt only, on a single line, without quotes or comments.
 
 Request: `;

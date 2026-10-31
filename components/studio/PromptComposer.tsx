@@ -5,6 +5,7 @@ import { CircleStop, SlidersHorizontal, Sparkles, X } from "lucide-react";
 import { useState, type FormEvent, type KeyboardEvent, type RefObject } from "react";
 import { AdvancedSettings } from "@/components/studio/AdvancedSettings";
 import { FormatPicker } from "@/components/studio/FormatPicker";
+import { PromptIdeas } from "@/components/studio/PromptIdeas";
 import { StylePicker } from "@/components/studio/StylePicker";
 import { TemplateFieldsForm } from "@/components/studio/TemplateFieldsForm";
 import { TemplatePicker } from "@/components/studio/TemplatePicker";
@@ -134,6 +135,7 @@ export function PromptComposer({
         />
 
         <TemplateFieldsForm template={template} values={templateFields} onChange={onTemplateFieldChange} />
+        {template.id === "none" && !variantSource && <PromptIdeas prompt={prompt} onChange={onPromptChange} />}
 
         <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-3 sm:px-4">
           <div className="flex items-center gap-2">
