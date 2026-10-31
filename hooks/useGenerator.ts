@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ApiClientError, generateImages } from "@/lib/api-client";
+import { useBackend } from "@/components/BackendProvider";
+import { ApiClientError } from "@/lib/api-client";
 import type { GenerateRequestInput } from "@/lib/validation";
 import type { Generation } from "@/types/generation";
 
@@ -23,6 +24,7 @@ export function useGenerator(onSuccess: (generation: Generation) => void) {
   const [state, setState] = useState<GeneratorState>({ status: "idle" });
   const controllerRef = useRef<AbortController | null>(null);
   const onSuccessRef = useRef(onSuccess);
+  const backend = useBackend();
 
   useEffect(() => {
     onSuccessRef.current = onSuccess;
@@ -39,7 +41,7 @@ export function useGenerator(onSuccess: (generation: Generation) => void) {
     setState({ status: "loading", request, startedAt: Date.now() });
 
     try {
-      const generation = await generateImages(request, controller.signal);
+      const generation = await backend.generate(request, controller.signal);
       setState({ status: "success", generation });
       onSuccessRef.current(generation);
     } catch (error) {
@@ -59,7 +61,7 @@ export function useGenerator(onSuccess: (generation: Generation) => void) {
       clearTimeout(timeout);
       controllerRef.current = null;
     }
-  }, []);
+  }, [backend]);
 
   const cancel = useCallback(() => controllerRef.current?.abort(), []);
   const reset = useCallback(() => setState({ status: "idle" }), []);

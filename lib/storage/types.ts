@@ -1,7 +1,7 @@
 import type { Generation } from "@/types/generation";
 
 export interface StoredImageFile {
-  data: Buffer;
+  data: Uint8Array;
   mimeType: string;
 }
 

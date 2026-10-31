@@ -6,7 +6,7 @@ import { GeneratedImageView } from "@/components/studio/GeneratedImageView";
 import { GenerationDetails } from "@/components/studio/GenerationDetails";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
-import { downloadUrl } from "@/lib/api-client";
+import { useBackend } from "@/components/BackendProvider";
 import { cn } from "@/lib/cn";
 import type { GeneratedImage, Generation, ModelInfo } from "@/types/generation";
 
@@ -34,6 +34,7 @@ export function ResultPanel({
   onOpen,
 }: ResultPanelProps) {
   const [selected, setSelected] = useState(0);
+  const backend = useBackend();
   const index = Math.min(selected, generation.images.length - 1);
   const image = generation.images[index]!;
   const transparent = generation.settings.background === "transparent";
@@ -94,7 +95,7 @@ export function ResultPanel({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <ButtonLink href={downloadUrl(image.url)} download>
+            <ButtonLink href={backend.download(image).href} download={backend.download(image).filename}>
               <Download className="h-4 w-4" aria-hidden />
               Télécharger
             </ButtonLink>

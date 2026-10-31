@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { MAX_PROMPT_LENGTH } from "@/lib/catalog";
 import { AppError, isAppError } from "@/lib/errors";
 import { detectImageMime, readImageSize } from "@/lib/image-format";
@@ -25,6 +24,8 @@ export interface GenerationServiceDeps {
   hashOwnerId: (ownerId: string) => string;
   /** Vrai si l'historique peut disparaître (stockage temporaire d'une plateforme serverless). */
   ephemeralStorage?: boolean;
+  /** URL publique d'une image stockée (par défaut la route serveur /api/images/:id). */
+  imageUrl?: (imageId: string) => string;
   now?: () => number;
 }
 
@@ -128,16 +129,16 @@ export class GenerationService {
 
       // Même si le client a annulé entre-temps, les images produites (et facturées) sont conservées
       // dans l'historique plutôt que perdues.
-      const generationId = randomUUID();
+      const generationId = crypto.randomUUID();
       const images: GeneratedImage[] = [];
       try {
         for (const image of result.images) {
           const mimeType = detectImageMime(image.data);
           if (!mimeType) continue; // donnée non reconnue comme image : jamais présentée comme un résultat
           const dimensions = readImageSize(image.data) ?? { width: size.width, height: size.height };
-          const id = randomUUID();
+          const id = crypto.randomUUID();
           await this.deps.store.saveImage(command.ownerId, id, { data: image.data, mimeType });
-          images.push({ id, url: `/api/images/${id}`, mimeType, ...dimensions });
+          images.push({ id, url: this.deps.imageUrl?.(id) ?? `/api/images/${id}`, mimeType, ...dimensions });
         }
         if (images.length === 0) {
           throw new AppError("PROVIDER_UNAVAILABLE", "Le fournisseur a renvoyé un résultat illisible. Veuillez réessayer.");

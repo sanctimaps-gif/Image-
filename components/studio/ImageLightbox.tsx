@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { GeneratedImageView } from "@/components/studio/GeneratedImageView";
-import { downloadUrl } from "@/lib/api-client";
+import { useBackend } from "@/components/BackendProvider";
 import type { Generation } from "@/types/generation";
 
 interface ImageLightboxProps {
@@ -16,6 +16,7 @@ interface ImageLightboxProps {
 /** Vue agrandie basée sur <dialog> natif : piège du focus, Échap et retour du focus gérés par le navigateur. */
 export function ImageLightbox({ generation, index, onIndexChange, onClose }: ImageLightboxProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const backend = useBackend();
   const total = generation.images.length;
   const image = generation.images[Math.min(index, total - 1)]!;
 
@@ -53,7 +54,7 @@ export function ImageLightbox({ generation, index, onIndexChange, onClose }: Ima
             {generation.prompt}
           </p>
           <div className="flex shrink-0 gap-2">
-            <a href={downloadUrl(image.url)} download className={iconButton} aria-label="Télécharger l'image">
+            <a href={backend.download(image).href} download={backend.download(image).filename} className={iconButton} aria-label="Télécharger l'image">
               <Download className="h-5 w-5" aria-hidden />
             </a>
             <button type="button" className={iconButton} onClick={() => dialogRef.current?.close()} aria-label="Fermer" autoFocus>

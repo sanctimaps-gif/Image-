@@ -4,13 +4,14 @@ import { Copy, Download, ImageOff, Layers, Pencil, RotateCcw, Trash2 } from "luc
 import { GeneratedImageView } from "@/components/studio/GeneratedImageView";
 import { formatDate } from "@/components/studio/GenerationDetails";
 import { Button } from "@/components/ui/Button";
-import { downloadUrl } from "@/lib/api-client";
+import { useBackend } from "@/components/BackendProvider";
 import type { HistoryStatus } from "@/hooks/useHistory";
 import type { Generation } from "@/types/generation";
 
 interface HistoryGalleryProps {
   items: Generation[];
   ephemeral: boolean;
+  note?: string;
   status: HistoryStatus;
   error: string | null;
   activeId: string | null;
@@ -24,6 +25,7 @@ interface HistoryGalleryProps {
 export function HistoryGallery({
   items,
   ephemeral,
+  note,
   status,
   error,
   activeId,
@@ -33,6 +35,7 @@ export function HistoryGallery({
   onEdit,
   onDelete,
 }: HistoryGalleryProps) {
+  const backend = useBackend();
   return (
     <section id="historique" aria-labelledby="history-title" className="scroll-mt-24">
       <div className="mb-5 flex items-end justify-between gap-4">
@@ -41,9 +44,10 @@ export function HistoryGallery({
             Vos créations
           </h2>
           <p className="text-sm text-muted">
-            {ephemeral
+            {note ??
+              (ephemeral
               ? "Associées à ce navigateur. Stockage temporaire : téléchargez les images à garder, l'historique peut être effacé."
-              : "Conservées sur ce serveur et associées à ce navigateur."}
+              : "Conservées sur ce serveur et associées à ce navigateur.")}
           </p>
         </div>
         {status === "ready" && items.length > 0 && (
@@ -129,8 +133,8 @@ export function HistoryGallery({
                     <Pencil className="h-3.5 w-3.5" aria-hidden />
                   </HistoryAction>
                   <a
-                    href={downloadUrl(cover.url)}
-                    download
+                    href={backend.download(cover).href}
+                    download={backend.download(cover).filename}
                     aria-label="Télécharger"
                     title="Télécharger"
                     className="flex h-7 w-7 items-center justify-center rounded-full text-muted transition-colors hover:bg-white/15 hover:text-fg sm:text-white sm:hover:text-white"

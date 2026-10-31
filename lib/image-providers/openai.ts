@@ -1,4 +1,3 @@
-import "server-only";
 import OpenAI, { toFile } from "openai";
 import type { ImageEditParamsNonStreaming, ImageGenerateParamsNonStreaming, ImagesResponse } from "openai/resources/images";
 import { AppError, isAppError } from "@/lib/errors";
@@ -18,13 +17,20 @@ export interface OpenAIProviderOptions {
   defaultModel: string;
   timeoutMs: number;
   maxImagesPerRequest: number;
+  /**
+   * Appels directs depuis le navigateur avec la clé saisie par l'utilisateur lui-même
+   * (version statique hébergée sur GitHub Pages). Jamais avec une clé du serveur.
+   */
+  browser?: boolean;
 }
 
 const MIME: Record<OutputFormat, string> = { png: "image/png", jpeg: "image/jpeg", webp: "image/webp" };
 
 export class OpenAIImageProvider implements ImageProvider {
   readonly id = "openai";
-  readonly name = "OpenAI Images";
+  get name(): string {
+    return this.options.browser ? "OpenAI (votre clé)" : "OpenAI Images";
+  }
 
   private readonly models: OpenAIModelSpec[];
   private readonly options: OpenAIProviderOptions;
@@ -94,7 +100,9 @@ export class OpenAIImageProvider implements ImageProvider {
     if (!this.isConfigured()) {
       throw new AppError(
         "PROVIDER_NOT_CONFIGURED",
-        "La génération d'images n'est pas configurée : ajoutez OPENAI_API_KEY dans le fichier .env.local du serveur.",
+        this.options.browser
+          ? "Ajoutez votre clé API OpenAI pour générer avec OpenAI."
+          : "La génération d'images n'est pas configurée : ajoutez OPENAI_API_KEY dans le fichier .env.local du serveur.",
       );
     }
     this.client ??= new OpenAI({
@@ -103,6 +111,7 @@ export class OpenAIImageProvider implements ImageProvider {
       timeout: this.options.timeoutMs,
       // Une génération coûte cher et peut être longue : une seule nouvelle tentative automatique.
       maxRetries: 1,
+      dangerouslyAllowBrowser: this.options.browser ?? false,
     });
     return this.client;
   }
@@ -123,7 +132,7 @@ export function parseResponse(response: ImagesResponse, requestedFormat: OutputF
   const images = (response.data ?? [])
     .map((item) => item.b64_json)
     .filter((b64): b64 is string => typeof b64 === "string" && b64.length > 0)
-    .map((b64) => ({ data: Buffer.from(b64, "base64"), mimeType: MIME[format] }))
+    .map((b64) => ({ data: decodeBase64(b64), mimeType: MIME[format] }))
     .filter((img) => img.data.length > 0);
 
   if (images.length === 0) {
@@ -187,4 +196,12 @@ export function mapOpenAIError(error: unknown, signal?: AbortSignal): AppError {
     });
   }
   return new AppError("INTERNAL_ERROR", "Une erreur inattendue est survenue pendant la génération.", { cause: error });
+}
+
+/** Décodage base64 disponible à la fois dans Node.js et dans le navigateur. */
+function decodeBase64(b64: string): Uint8Array {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
 }

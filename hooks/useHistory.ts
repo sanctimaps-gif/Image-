@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ApiClientError, deleteGeneration, fetchHistory } from "@/lib/api-client";
+import { useBackend } from "@/components/BackendProvider";
+import { ApiClientError } from "@/lib/api-client";
 import type { Generation } from "@/types/generation";
 
 export type HistoryStatus = "loading" | "ready" | "error";
@@ -12,6 +13,7 @@ export function useHistory() {
   const [status, setStatus] = useState<HistoryStatus>("loading");
   const [error, setError] = useState<string | null>(null);
   const itemsRef = useRef(items);
+  const backend = useBackend();
 
   useEffect(() => {
     itemsRef.current = items;
@@ -21,7 +23,7 @@ export function useHistory() {
     setStatus("loading");
     setError(null);
     try {
-      const generations = await fetchHistory(signal);
+      const generations = await backend.list(signal);
       setItems(generations);
       setStatus("ready");
     } catch (e) {
@@ -29,7 +31,7 @@ export function useHistory() {
       setError(e instanceof ApiClientError ? e.message : "Impossible de charger l'historique.");
       setStatus("error");
     }
-  }, []);
+  }, [backend]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -50,7 +52,7 @@ export function useHistory() {
     const removed = snapshot[index];
     setItems((current) => current.filter((g) => g.id !== id));
     try {
-      await deleteGeneration(id);
+      await backend.remove(id);
     } catch (e) {
       if (removed) {
         setItems((current) => {
@@ -62,7 +64,7 @@ export function useHistory() {
       }
       throw e;
     }
-  }, []);
+  }, [backend]);
 
   return { items, status, error, reload: load, add, remove };
 }

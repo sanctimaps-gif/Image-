@@ -29,7 +29,8 @@ export function GeneratedImageView({
   fit = "contain",
   fillParent = false,
 }: GeneratedImageViewProps) {
-  const [state, setState] = useState<"loading" | "loaded" | "error">("loading");
+  const [loadState, setState] = useState<"loading" | "loaded" | "error">("loading");
+  const state = image.url ? loadState : "error";
 
   return (
     <div

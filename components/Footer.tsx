@@ -8,15 +8,16 @@ const ROADMAP = [
 ];
 
 /** Fonctionnalités prévues mais non disponibles : affichées comme telles, sans bouton factice. */
-export function Footer() {
+export function Footer({ staticSite = false }: { staticSite?: boolean }) {
   return (
     <footer className="border-t border-border">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 text-sm sm:px-6 md:flex-row md:justify-between">
         <div className="max-w-sm space-y-2">
           <p className="font-medium text-fg">VisionAI</p>
           <p className="text-muted">
-            Images générées par l&apos;API OpenAI Images. Les demandes sont soumises aux règles d&apos;utilisation et de
-            sécurité du fournisseur.
+            {staticSite
+              ? "Version en ligne : tout se passe dans votre navigateur. Images générées par OpenAI Images (avec votre clé) ou par pollinations.ai (essai gratuit), selon leurs règles d'utilisation."
+              : "Images générées par l'API OpenAI Images. Les demandes sont soumises aux règles d'utilisation et de sécurité du fournisseur."}
           </p>
         </div>
         <div>

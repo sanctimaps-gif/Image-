@@ -131,7 +131,7 @@ function assertId(id: string): string {
   return id.toLowerCase();
 }
 
-async function writeAtomic(file: string, data: string | Buffer) {
+async function writeAtomic(file: string, data: string | Uint8Array) {
   const tmp = `${file}.${process.pid}.${Date.now()}.tmp`;
   await fs.writeFile(tmp, data);
   await fs.rename(tmp, file);

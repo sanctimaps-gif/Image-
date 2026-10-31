@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { RadioChips } from "@/components/ui/RadioChips";
 import { ErrorBanner } from "@/components/studio/ErrorBanner";
 import { GenerationProgress } from "@/components/studio/GenerationProgress";
 import { HistoryGallery } from "@/components/studio/HistoryGallery";
@@ -49,15 +50,36 @@ function errorTitle(error: ApiClientError): string {
   }
 }
 
-export function Studio({ config }: { config: AppConfig }) {
-  const provider = config.providers.find((p) => p.configured) ?? config.providers[0] ?? null;
+interface StudioProps {
+  config: AppConfig;
+  /**
+   * Contenu propre au fournisseur sélectionné (ex. saisie de la clé OpenAI dans la version statique).
+   * Sans cette fonction, un fournisseur non configuré affiche les instructions serveur.
+   */
+  renderProviderSetup?: (providerId: string, configured: boolean) => ReactNode;
+}
+
+export function Studio({ config, renderProviderSetup }: StudioProps) {
+  const [providerId, setProviderId] = useState<string | null>(
+    () =>
+      (
+        config.providers.find((p) => p.id === "openai" && p.configured) ??
+        config.providers.find((p) => p.configured) ??
+        config.providers[0]
+      )?.id ?? null,
+  );
+  const provider = config.providers.find((p) => p.id === providerId) ?? config.providers[0] ?? null;
   const models = useMemo(() => provider?.models ?? [], [provider]);
   const configured = Boolean(provider?.configured);
   const maxImages = config.limits.maxImagesPerRequest;
   const defaultModel = provider?.defaultModel ?? models[0]?.id ?? "";
 
   const [prompt, setPrompt] = useState("");
-  const [settings, setSettings] = useState<ComposerSettings>({ ...DEFAULT_SETTINGS, model: defaultModel });
+  const [settings, setSettings] = useState<ComposerSettings>(() => {
+    const initial = { ...DEFAULT_SETTINGS, model: defaultModel };
+    const initialModel = models.find((m) => m.id === defaultModel);
+    return initialModel ? coerceSettings(initial, initialModel, maxImages) : initial;
+  });
   const [templateFields, setTemplateFields] = useState<TemplateFields>({});
   const [variantSource, setVariantSource] = useState<GeneratedImage | null>(null);
   const [lightbox, setLightbox] = useState<{ generation: Generation; index: number } | null>(null);
@@ -142,7 +164,19 @@ export function Studio({ config }: { config: AppConfig }) {
 
   function handleSubmit() {
     if (generator.isGenerating) return;
-    void generator.generate(toRequest(prompt, settings, templateFields, variantSource?.id ?? null));
+    // Toujours envoyer des réglages compatibles avec le modèle réellement sélectionné.
+    const effective = model ? coerceSettings(settings, model, maxImages) : settings;
+    void generator.generate(toRequest(prompt, effective, templateFields, variantSource?.id ?? null));
+  }
+
+  function changeProvider(id: string) {
+    const next = config.providers.find((p) => p.id === id);
+    setProviderId(id);
+    const nextModel = next?.models.find((m) => m.id === next.defaultModel) ?? next?.models[0];
+    if (!next || !nextModel) return;
+    setSettings((current) =>
+      applyTemplateDefaults({ ...current, model: nextModel.id }, getTemplate(current.template), next.models, maxImages),
+    );
   }
 
   function changeTemplate(id: TemplateId) {
@@ -221,7 +255,18 @@ export function Studio({ config }: { config: AppConfig }) {
           </p>
         </div>
 
-        {!configured && <SetupNotice />}
+        {config.providers.length > 1 && (
+          <RadioChips
+            legend="Moteur de génération"
+            value={provider?.id ?? ""}
+            onChange={changeProvider}
+            options={config.providers.map((p) => ({ value: p.id, label: p.name }))}
+          />
+        )}
+
+        {renderProviderSetup
+          ? provider && renderProviderSetup(provider.id, configured)
+          : !configured && <SetupNotice />}
 
         <PromptComposer
           textareaRef={textareaRef}
@@ -300,6 +345,7 @@ export function Studio({ config }: { config: AppConfig }) {
       <HistoryGallery
         items={history.items}
         ephemeral={config.ephemeralStorage}
+        note={config.historyNote}
         status={history.status}
         error={history.error}
         activeId={current?.id ?? null}

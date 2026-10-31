@@ -16,7 +16,7 @@ export interface ProviderGenerateRequest {
 }
 
 export interface ProviderSourceImage {
-  data: Buffer;
+  data: Uint8Array;
   mimeType: string;
   filename: string;
 }
@@ -26,7 +26,7 @@ export interface ProviderEditRequest extends ProviderGenerateRequest {
 }
 
 export interface ProviderImage {
-  data: Buffer;
+  data: Uint8Array;
   mimeType: string;
 }
 

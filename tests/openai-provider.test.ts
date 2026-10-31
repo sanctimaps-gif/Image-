@@ -75,7 +75,7 @@ describe("OpenAIImageProvider", () => {
       safety_identifier: "hash",
     });
     expect(result.images).toHaveLength(1);
-    expect(result.images[0]!.data.equals(fakePng())).toBe(true);
+    expect(Buffer.from(result.images[0]!.data).equals(fakePng())).toBe(true);
     expect(result.size).toBe("1024x1024");
   });
 

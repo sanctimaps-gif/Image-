@@ -216,7 +216,7 @@ describe("POST /api/generate", () => {
     expect(generation.kind).toBe("variation");
     expect(generation.sourceImageId).toBe(first.images[0]!.id);
     expect(provider.editCalls).toHaveLength(1);
-    expect(provider.editCalls[0]!.sourceImage.data.equals(fakePng())).toBe(true);
+    expect(Buffer.from(provider.editCalls[0]!.sourceImage.data).equals(fakePng())).toBe(true);
 
     const unknown = await post({ prompt: "Un phare", sourceImageId: "00000000-0000-4000-8000-000000000000" });
     expect(unknown.status).toBe(404);

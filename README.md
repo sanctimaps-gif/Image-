@@ -10,7 +10,26 @@ Application web de génération d'images par IA : l'utilisateur décrit une imag
 
 ---
 
-## Mettre l'application en ligne (depuis un téléphone ou un ordinateur)
+## Version en ligne (GitHub Pages)
+
+**<https://sanctimaps-gif.github.io/Image-/>**
+
+GitHub Pages n'héberge que des fichiers statiques, sans serveur. Cette version fonctionne donc entièrement dans le navigateur :
+
+- **Essai gratuit (Pollinations)** : sans clé, via le service tiers pollinations.ai (modèle Flux). Une image à la fois, environ toutes les 45 s, en définition réduite (≈ 768 px), texte sur l'image peu fiable. Service non garanti.
+- **OpenAI (votre clé)** : saisissez votre propre clé API OpenAI. Elle est conservée uniquement dans le navigateur (`localStorage`) et envoyée directement à OpenAI. C'est le mode à utiliser pour des affiches, fiches et infographies de qualité.
+- L'historique et les images restent dans le navigateur (IndexedDB), sur l'appareil utilisé.
+
+Mettre à jour le site après une modification du code :
+
+```bash
+npm run build:pages   # régénère site/, index.html et .nojekyll
+git add site index.html .nojekyll && git commit -m "Mettre à jour le site" && git push
+```
+
+---
+
+## Déployer la version serveur (Vercel)
 
 Ce dépôt contient le **code source**. Pour obtenir une adresse web utilisable (`https://….vercel.app`), déployez-le gratuitement sur Vercel :
 

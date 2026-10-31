@@ -7,7 +7,6 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "VisionAI — Imaginez. Décrivez. Créez.",
   description: "Transformez vos idées en images grâce à l'intelligence artificielle.",
-  icons: { icon: "/icon.svg" },
 };
 
 export const viewport: Viewport = {

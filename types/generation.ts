@@ -120,6 +120,8 @@ export interface AppConfig {
   };
   /** Historique stocké temporairement (ex. Vercel) : il peut être effacé. */
   ephemeralStorage: boolean;
+  /** Phrase affichée sous « Vos créations » pour dire où l'historique est conservé. */
+  historyNote?: string;
 }
 
 export type ApiErrorCode =
