@@ -298,6 +298,7 @@ export function Studio({ config, renderProviderSetup }: StudioProps) {
               prompt={state.request.prompt}
               format={loadingFormat}
               count={state.request.count ?? 1}
+              progress={state.progress}
               onCancel={generator.cancel}
             />
           )}

@@ -153,6 +153,11 @@ export interface ApiErrorBody {
   };
 }
 
+/** Avancement d'une génération exécutée sur l'appareil (téléchargement du modèle puis calcul). */
+export type GenerationProgressInfo =
+  | { phase: "download"; loaded: number; total: number }
+  | { phase: "generate"; ratio: number };
+
 export interface GenerateResponse {
   generation: Generation;
 }

@@ -1,45 +1,34 @@
 import { ApiClientError, type StudioBackend, downloadFilename } from "@/lib/backend";
+import { IndexedDbGenerationStore } from "@/lib/browser/indexeddb-store";
 import { isAppError } from "@/lib/errors";
 import { GenerationService } from "@/lib/generation-service";
-import { OpenAIImageProvider } from "@/lib/image-providers/openai";
-import { PollinationsImageProvider } from "@/lib/image-providers/pollinations";
-import { IndexedDbGenerationStore } from "@/lib/browser/indexeddb-store";
+import type { ImageProvider } from "@/lib/image-providers/types";
 import type { AppConfig, Generation } from "@/types/generation";
 
 const OWNER = "local";
-const OPENAI_MODELS = "gpt-image-2,gpt-image-1.5,gpt-image-1-mini";
 
 /**
- * Moteur de la version statique : la même validation et les mêmes prompts que le serveur,
- * mais les appels partent directement du navigateur et l'historique reste dans IndexedDB.
+ * Moteur de la version en ligne : la même validation et les mêmes prompts que le serveur,
+ * un modèle d'IA libre exécuté sur l'appareil, et un historique conservé dans IndexedDB.
+ * Aucun service d'IA externe n'est appelé.
  */
 export class BrowserEngine implements StudioBackend {
   private readonly store: IndexedDbGenerationStore;
   private readonly service: GenerationService;
   private readonly objectUrls = new Map<string, string>();
 
-  constructor(openaiApiKey: string | null, store?: IndexedDbGenerationStore) {
+  constructor(provider: ImageProvider, store?: IndexedDbGenerationStore) {
     this.store = store ?? new IndexedDbGenerationStore(60);
     this.service = new GenerationService({
-      providers: [
-        new PollinationsImageProvider(),
-        new OpenAIImageProvider({
-          apiKey: openaiApiKey ?? "",
-          enabledModels: OPENAI_MODELS,
-          defaultModel: "gpt-image-2",
-          timeoutMs: 240_000,
-          maxImagesPerRequest: 4,
-          browser: true,
-        }),
-      ],
+      providers: [provider],
       store: this.store,
-      hashOwnerId: () => "visionai-static",
+      hashOwnerId: () => OWNER,
       imageUrl: (id) => `idb:${id}`,
       limits: {
-        requestsPerMinute: 10,
-        imagesPerDay: 500,
-        globalImagesPerDay: 500,
-        maxImagesPerRequest: 4,
+        requestsPerMinute: 30,
+        imagesPerDay: 10_000,
+        globalImagesPerDay: 10_000,
+        maxImagesPerRequest: 1,
         maxConcurrentPerClient: 1,
       },
     });
@@ -53,9 +42,9 @@ export class BrowserEngine implements StudioBackend {
     };
   }
 
-  async generate(payload: Parameters<StudioBackend["generate"]>[0], signal?: AbortSignal): Promise<Generation> {
+  async generate(...[payload, signal, onProgress]: Parameters<StudioBackend["generate"]>): Promise<Generation> {
     try {
-      const generation = await this.service.generate({ body: payload, ownerId: OWNER, clientIp: null, signal });
+      const generation = await this.service.generate({ body: payload, ownerId: OWNER, clientIp: null, signal, onProgress });
       return this.withObjectUrls(generation);
     } catch (error) {
       throw toClientError(error);

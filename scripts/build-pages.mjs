@@ -22,7 +22,12 @@ try {
   const result = spawnSync("npx", ["next", "build"], {
     cwd: root,
     stdio: "inherit",
-    env: { ...process.env, NEXT_PUBLIC_VISIONAI_STATIC: "1", VISIONAI_BASE_PATH: basePath },
+    env: {
+      ...process.env,
+      NEXT_PUBLIC_VISIONAI_STATIC: "1",
+      NEXT_PUBLIC_VISIONAI_BASE_PATH: basePath,
+      VISIONAI_BASE_PATH: basePath,
+    },
   });
   status = result.status ?? 1;
 } finally {
@@ -33,6 +38,12 @@ if (status !== 0) process.exit(status);
 rmSync(path.join(root, "site"), { recursive: true, force: true });
 cpSync(path.join(root, "out"), path.join(root, "site"), { recursive: true });
 rmSync(path.join(root, "out"), { recursive: true, force: true });
+
+// Moteur ONNX Runtime (WebAssembly + WebGPU) servi par le site lui-même, sans CDN tiers.
+const ortDist = path.join(root, "node_modules", "onnxruntime-web", "dist");
+for (const file of ["ort-wasm-simd-threaded.asyncify.mjs", "ort-wasm-simd-threaded.asyncify.wasm"]) {
+  cpSync(path.join(ortDist, file), path.join(root, "site", "ort", file));
+}
 
 writeFileSync(path.join(root, ".nojekyll"), "");
 writeFileSync(

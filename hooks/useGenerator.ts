@@ -4,14 +4,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useBackend } from "@/components/BackendProvider";
 import { ApiClientError } from "@/lib/api-client";
 import type { GenerateRequestInput } from "@/lib/validation";
-import type { Generation } from "@/types/generation";
+import type { Generation, GenerationProgressInfo } from "@/types/generation";
 
 /** Au-delà, la requête est abandonnée côté navigateur (le serveur coupe à 5 minutes). */
 const CLIENT_TIMEOUT_MS = 6 * 60 * 1000;
 
 export type GeneratorState =
   | { status: "idle" }
-  | { status: "loading"; request: GenerateRequestInput; startedAt: number }
+  | { status: "loading"; request: GenerateRequestInput; startedAt: number; progress: GenerationProgressInfo | null }
   | { status: "success"; generation: Generation }
   | { status: "error"; error: ApiClientError; request: GenerateRequestInput }
   | { status: "cancelled"; request: GenerateRequestInput };
@@ -38,10 +38,12 @@ export function useGenerator(onSuccess: (generation: Generation) => void) {
     const controller = new AbortController();
     controllerRef.current = controller;
     const timeout = setTimeout(() => controller.abort(new DOMException("timeout", "TimeoutError")), CLIENT_TIMEOUT_MS);
-    setState({ status: "loading", request, startedAt: Date.now() });
+    setState({ status: "loading", request, startedAt: Date.now(), progress: null });
+    const onProgress = (progress: GenerationProgressInfo) =>
+      setState((current) => (current.status === "loading" && current.request === request ? { ...current, progress } : current));
 
     try {
-      const generation = await backend.generate(request, controller.signal);
+      const generation = await backend.generate(request, controller.signal, onProgress);
       setState({ status: "success", generation });
       onSuccessRef.current(generation);
     } catch (error) {

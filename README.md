@@ -14,11 +14,15 @@ Application web de génération d'images par IA : l'utilisateur décrit une imag
 
 **<https://sanctimaps-gif.github.io/Image-/>**
 
-GitHub Pages n'héberge que des fichiers statiques, sans serveur. Cette version fonctionne donc entièrement dans le navigateur :
+Cette version ne dépend d'**aucun service d'IA** (ni ChatGPT/OpenAI, ni autre API) : les images sont calculées **sur l'appareil**, dans le navigateur, par le modèle libre **Janus-Pro 1B** de DeepSeek (licence MIT), via [Transformers.js](https://github.com/huggingface/transformers.js) et WebGPU.
 
-- **Essai gratuit (Pollinations)** : sans clé, via le service tiers pollinations.ai (modèle Flux). Une image à la fois, environ toutes les 45 s, en définition réduite (≈ 768 px), texte sur l'image peu fiable. Service non garanti.
-- **OpenAI (votre clé)** : saisissez votre propre clé API OpenAI. Elle est conservée uniquement dans le navigateur (`localStorage`) et envoyée directement à OpenAI. C'est le mode à utiliser pour des affiches, fiches et infographies de qualité.
+- **Première utilisation** : le modèle (`onnx-community/Janus-Pro-1B-ONNX`, environ 1 Go) est téléchargé une seule fois depuis Hugging Face, puis conservé dans le cache du navigateur. Ce n'est qu'un téléchargement de fichiers : aucune description ni image n'est envoyée.
+- **Compatibilité** : WebGPU est indispensable : Safari sur iOS 26 ou plus récent, Chrome / Edge récents sur ordinateur et Android. Sur téléphone, la mémoire disponible peut être insuffisante ; un ordinateur avec une carte graphique est plus confortable.
+- **Limites du modèle** : images carrées de 384 × 384 px, meilleure compréhension de l'anglais, texte écrit sur l'image peu fiable. La qualité est nettement inférieure aux grands modèles commerciaux.
+- Le moteur ONNX Runtime est servi par le site lui-même (`site/ort/`), sans CDN tiers.
 - L'historique et les images restent dans le navigateur (IndexedDB), sur l'appareil utilisé.
+
+La version serveur (dossier `app/api`) peut toujours utiliser l'API OpenAI si vous le souhaitez ; elle n'est pas utilisée par le site en ligne.
 
 Mettre à jour le site après une modification du code :
 

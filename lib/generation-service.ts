@@ -6,7 +6,7 @@ import { buildPrompt } from "@/lib/prompt";
 import { ConcurrencyLimiter, DailyQuota, SlidingWindowLimiter } from "@/lib/rate-limit";
 import type { GenerationStore } from "@/lib/storage/types";
 import { parseGenerateRequest, resolveGeneration } from "@/lib/validation";
-import type { AppConfig, GeneratedImage, Generation } from "@/types/generation";
+import type { AppConfig, GeneratedImage, Generation, GenerationProgressInfo } from "@/types/generation";
 
 export interface GenerationLimits {
   requestsPerMinute: number;
@@ -34,6 +34,7 @@ export interface GenerateCommand {
   ownerId: string;
   clientIp: string | null;
   signal?: AbortSignal;
+  onProgress?: (progress: GenerationProgressInfo) => void;
 }
 
 const GLOBAL_KEY = "global";
@@ -112,6 +113,7 @@ export class GenerationService {
         outputCompression: settings.outputCompression,
         safetyIdentifier: this.deps.hashOwnerId(command.ownerId),
         signal: command.signal,
+        onProgress: command.onProgress,
       };
 
       let result: ProviderResult;

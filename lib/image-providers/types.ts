@@ -1,4 +1,4 @@
-import type { Background, ModelInfo, OutputFormat, Quality } from "@/types/generation";
+import type { Background, GenerationProgressInfo, ModelInfo, OutputFormat, Quality } from "@/types/generation";
 
 /** Requête normalisée transmise à un fournisseur, après validation complète. */
 export interface ProviderGenerateRequest {
@@ -13,6 +13,8 @@ export interface ProviderGenerateRequest {
   /** Identifiant opaque (haché) de l'utilisateur final, pour la détection d'abus du fournisseur. */
   safetyIdentifier: string;
   signal?: AbortSignal;
+  /** Avancement réel, pour les fournisseurs qui le connaissent (modèle local). */
+  onProgress?: (progress: GenerationProgressInfo) => void;
 }
 
 export interface ProviderSourceImage {

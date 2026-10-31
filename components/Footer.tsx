@@ -16,7 +16,7 @@ export function Footer({ staticSite = false }: { staticSite?: boolean }) {
           <p className="font-medium text-fg">VisionAI</p>
           <p className="text-muted">
             {staticSite
-              ? "Version en ligne : tout se passe dans votre navigateur. Images générées par OpenAI Images (avec votre clé) ou par pollinations.ai (essai gratuit), selon leurs règles d'utilisation."
+              ? "Version en ligne : aucun service d'IA externe. Les images sont calculées sur votre appareil par le modèle libre Janus-Pro 1B (DeepSeek, licence MIT)."
               : "Images générées par l'API OpenAI Images. Les demandes sont soumises aux règles d'utilisation et de sécurité du fournisseur."}
           </p>
         </div>
