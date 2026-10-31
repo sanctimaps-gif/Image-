@@ -24,6 +24,17 @@ Cette version ne dépend d'**aucun service d'IA** (ni ChatGPT/OpenAI, ni autre A
 
 La version serveur (dossier `app/api`) peut toujours utiliser l'API OpenAI si vous le souhaitez ; elle n'est pas utilisée par le site en ligne.
 
+### Entraînement (`/entrainement`)
+
+Un banc d'entraînement « par les prompts » : 8 modules, 40 exercices (compréhension du langage, formes, lumière, photoréalisme, anatomie, styles, respect des instructions, optimisation).
+
+- Chaque exercice génère une image avec le modèle local, puis l'**analyse des pixels** (dimensions, nombre de pixels, taille brute, premier pixel, couleur moyenne, couleurs dominantes par k-moyennes).
+- On coche les éléments attendus présents (la note « respect du prompt » en est déduite) et on note 5 critères sur 20, soit un total sur 100.
+- Un **tableau de suivi** donne la progression globale et la moyenne de chaque module ; le module « Optimisation » compare les notes avec et sans l'étape de compréhension.
+- Les notes restent dans le navigateur (`localStorage`), les images dans l'historique (IndexedDB).
+
+Il ne s'agit pas de réentraîner le modèle : modifier ses paramètres (PyTorch, LoRA, AdamW) demande une carte graphique et un jeu de données, hors de portée d'un navigateur.
+
 Mettre à jour le site après une modification du code :
 
 ```bash
